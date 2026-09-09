@@ -1,0 +1,284 @@
+openapi: 3.0.3
+info:
+  title: 物资家底账本 / Household Ledger
+  version: 0.1.0
+  description: >
+    Private encrypted household inventory. Recipients are optional.
+    Not a legal will. No bank APIs. Server stores ciphertext.
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Auth
+  - name: Inventory
+  - name: Recipients
+  - name: Shares
+  - name: Dashboard
+paths:
+  /api/health:
+    get:
+      summary: Liveness
+      responses:
+        "200":
+          description: OK
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Session
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Session
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Current user
+  /api/auth/check-in:
+    post:
+      tags: [Auth]
+      security: [{bearerAuth: []}]
+      summary: Reset missed-check-in timer
+      responses:
+        "200":
+          description: User
+  /api/auth/settings:
+    patch:
+      tags: [Auth]
+      security: [{bearerAuth: []}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsRequest"
+      responses:
+        "200":
+          description: User
+  /api/items:
+    get:
+      tags: [Inventory]
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: query
+          name: kind
+          schema:
+            $ref: "#/components/schemas/ItemKind"
+      responses:
+        "200":
+          description: Ciphertext rows
+    post:
+      tags: [Inventory]
+      security: [{bearerAuth: []}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemWrite"
+      responses:
+        "200":
+          description: Created
+  /api/items/{id}:
+    get:
+      tags: [Inventory]
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Item
+    put:
+      tags: [Inventory]
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemWrite"
+      responses:
+        "200":
+          description: Updated
+    delete:
+      tags: [Inventory]
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Deleted
+  /api/recipients:
+    get:
+      tags: [Recipients]
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Recipients
+    post:
+      tags: [Recipients]
+      security: [{bearerAuth: []}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecipientWrite"
+      responses:
+        "200":
+          description: Created
+  /api/recipients/{id}:
+    delete:
+      tags: [Recipients]
+      security: [{bearerAuth: []}]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Deleted
+  /api/shares:
+    get:
+      tags: [Shares]
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Owner share list
+    post:
+      tags: [Shares]
+      security: [{bearerAuth: []}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EncryptedBundle"
+      responses:
+        "200":
+          description: Share metadata
+  /api/shares/{token}:
+    get:
+      tags: [Shares]
+      summary: Public ciphertext retrieval
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Ciphertext bundle
+  /api/auto-send/arm:
+    post:
+      tags: [Shares]
+      security: [{bearerAuth: []}]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EncryptedBundle"
+      responses:
+        "200":
+          description: Armed
+  /api/auto-send/disarm:
+    post:
+      tags: [Shares]
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Disarmed
+  /api/notices:
+    get:
+      tags: [Shares]
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Outbound notices
+  /api/dashboard:
+    get:
+      tags: [Dashboard]
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Counts and check-in
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ItemKind:
+      type: string
+      enum: [ASSET, CARD, MONEY, DEBT, INSURANCE, KEY, ACCOUNT_HINT, FILE_LOCATION]
+    SharingTier:
+      type: string
+      enum: [RECORD_ONLY, MANUAL_SHARE, AUTO_SEND]
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string, minLength: 8, maxLength: 72}
+        displayName: {type: string}
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: {type: string}
+        password: {type: string}
+    SettingsRequest:
+      type: object
+      properties:
+        sharingTier: {$ref: "#/components/schemas/SharingTier"}
+        checkInIntervalDays: {type: integer, minimum: 7, maximum: 365}
+    ItemWrite:
+      type: object
+      required: [kind, ciphertext, nonce]
+      properties:
+        kind: {$ref: "#/components/schemas/ItemKind"}
+        ciphertext: {type: string}
+        nonce: {type: string}
+    RecipientWrite:
+      type: object
+      required: [name, email]
+      properties:
+        name: {type: string}
+        email: {type: string, format: email}
+        relationship: {type: string}
+    EncryptedBundle:
+      type: object
+      required: [ciphertext, nonce, kdfSalt]
+      properties:
+        ciphertext: {type: string}
+        nonce: {type: string}
+        kdfSalt: {type: string}
