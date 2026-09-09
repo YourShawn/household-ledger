@@ -24,7 +24,6 @@ export function Dashboard() {
   return (
     <div>
       <h1>{t('overview')}</h1>
-      <p className="warn">{t('disclaimer')}</p>
       {data ? (
         <div className="stats">
           <article className="card">

@@ -25,7 +25,7 @@ public class OpenApiAndHealthConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("物资家底账本 / Household Ledger")
-                        .description("Private encrypted household inventory. Not a legal will. No bank APIs.")
+                        .description("Private encrypted wealth inventory. Recipients optional. Client-side encryption; server stores ciphertext. No bank API.")
                         .version("0.1.0")
                         .license(new License().name("MIT")))
                 .components(new Components().addSecuritySchemes("bearer-jwt", bearer))

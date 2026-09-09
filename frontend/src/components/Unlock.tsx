@@ -3,8 +3,8 @@ import { useI18n } from '../i18n'
 import { useSession } from '../session'
 
 export function Unlock() {
-  const { t } = useI18n()
-  const { unlock, user } = useSession()
+  const { t, lang } = useI18n()
+  const { unlock, resetLocalVault, user, vaultMismatch } = useSession()
   const [pass, setPass] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -16,7 +16,19 @@ export function Unlock() {
     try {
       await unlock(pass)
     } catch {
-      setError('Unable to unlock — check the vault passphrase.')
+      setError(lang === 'zh' ? '无法打开保险柜，请核对口令。' : 'Unable to unlock — check the vault passphrase.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onReset = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await resetLocalVault(pass || undefined)
+    } catch {
+      setError(lang === 'zh' ? '重置后仍无法打开保险柜。' : 'Reset finished, but unlock failed.')
     } finally {
       setBusy(false)
     }
@@ -29,17 +41,32 @@ export function Unlock() {
         <p className="muted">
           {user?.email} · {t('vault')}
         </p>
-        <p className="muted">
-          This passphrase never leaves the browser. It is not the login password unless you chose the same
-          phrase.
-        </p>
+        <p className="muted">{t('vaultHint')}</p>
+        {vaultMismatch ? (
+          <>
+            <p className="error">{t('vaultMismatch')}</p>
+            <p className="muted">{t('vaultResetWarn')}</p>
+            <div className="row-actions">
+              <button className="btn" disabled={busy} type="button" onClick={() => void onReset()}>
+                {t('vaultReset')}
+              </button>
+            </div>
+          </>
+        ) : null}
         <label>
           {t('vault')}
-          <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} required minLength={8} />
+          <input
+            type="password"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+            required
+            minLength={8}
+            placeholder={lang === 'zh' ? '默认为登录密码' : 'Defaults to login password'}
+          />
         </label>
         {error ? <p className="error">{error}</p> : null}
         <div className="row-actions">
-          <button className="btn" disabled={busy} type="submit">
+          <button className="btn secondary" disabled={busy} type="submit">
             {t('unlock')}
           </button>
         </div>

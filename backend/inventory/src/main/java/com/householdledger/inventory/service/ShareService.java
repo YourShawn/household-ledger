@@ -173,10 +173,8 @@ public class ShareService {
         notice.setRecipientName(recipient.getName());
         notice.setChannel("email");
         String body = """
-                This is not a legal will.
-
-                %s designated you as a household-ledger recipient after a missed check-in.
-                Retrieve the encrypted bundle (you still need the unlock phrase they shared separately):
+                %s shared an encrypted household ledger bundle with you after a missed check-in.
+                Retrieve the ciphertext (use the unlock phrase they gave you separately):
                 %s%s
                 """.formatted(user.getDisplayName(), publicBaseUrl, path);
         if (mailSender.isEmpty()) {

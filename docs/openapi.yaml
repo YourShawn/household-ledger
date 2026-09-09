@@ -3,8 +3,8 @@ info:
   title: 物资家底账本 / Household Ledger
   version: 0.1.0
   description: >
-    Private encrypted household inventory. Recipients are optional.
-    Not a legal will. No bank APIs. Server stores ciphertext.
+    Private encrypted wealth inventory. Recipients are optional.
+    Client-side encryption; server stores ciphertext. No bank API.
   license:
     name: MIT
 servers:

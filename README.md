@@ -1,12 +1,9 @@
 # 物资家底账本 / Household Ledger
 
-Private household inventory with **optional** recipients and a soft missed-check-in send.  
-私密家底账本：接收人可选；可在约一个月未报到后把**密文包**发给指定人。
+Private **wealth inventory** — know and organize what you have (物资、卡、钱、债、保险、钥匙、账号提示、文件位置). Optional sharing with people you trust.  
+私密家底账本：把**财**与家底记清楚；接收人可选；可在约一个月未报到后把**密文包**发给指定人。
 
-**This is not a legal will, trust, or estate instrument. There is no bank API.**  
-**本软件不是遗嘱、信托或任何法律文件，也不连接银行。**
-
-MIT licensed. Server stores **ciphertext**. Encryption runs in the browser (AES-256-GCM, PBKDF2-SHA-256).
+MIT licensed. Encryption runs in the browser (AES-256-GCM, PBKDF2-SHA-256). Server stores **ciphertext**. No bank API.
 
 ---
 
@@ -14,7 +11,7 @@ MIT licensed. Server stores **ciphertext**. Encryption runs in the browser (AES-
 
 ### What it is
 
-A private ledger for typed household facts. Each field has **one** meaning. Kinds:
+A private ledger for household wealth and facts. Each field has **one** meaning. Kinds:
 
 | Kind | Meaning | Fields (one semantic each) |
 | --- | --- | --- |
@@ -35,7 +32,13 @@ Recipients are **optional**. Three tiers:
 
 Recipients still need the unlock phrase you shared out of band. The API never sees plaintext item fields.
 
-Seed user: `demo@household-ledger.local` / `DemoPass123!`
+### Demo
+
+Sign in as `demo@household-ledger.local` / `DemoPass123!`.
+
+The client vault **auto-unlocks with the same login password** — no second passphrase prompt. The vault passphrase is never sent to the server. Login password is only for JWT.
+
+If an older local canary was created with a different phrase, use **Forgot vault passphrase / reset local vault** (`忘记保险柜口令 / 重置本机保险柜`). That clears `hl.canary.${userId}` and `hl.vault` on this device, then re-unlocks with the login password. Ciphertext already stored on the server still needs the old phrase if any items were encrypted with it; empty demo ledgers are fine to reset.
 
 ### Architecture
 
@@ -57,7 +60,6 @@ Java 17+, Maven, Node 22+.
 ```bash
 # API with local H2 (MySQL-mode) — good for development
 cd backend && mvn -pl app -am spring-boot:run -Dspring-boot.run.profiles=local
-
 # UI (proxies /api to :8080)
 cd frontend && npm install && npm run dev
 ```
@@ -98,7 +100,7 @@ CI: `.github/workflows/ci.yml`.
 
 See `.env.example`. Notable keys: `JWT_SECRET`, `MYSQL_HOST` (`127.0.0.1` / private only), MySQL credentials, optional `MAIL_HOST` for real auto-send email.
 
-Client-side vault passphrase is **not** sent to the server. Login password is only for JWT.
+Client-side vault passphrase is **not** sent to the server. After login, the vault defaults to that same password in the browser only.
 
 ---
 
@@ -106,7 +108,7 @@ Client-side vault passphrase is **not** sent to the server. Login password is on
 
 ### 这是什么
 
-给家庭用的私密家底账：每一格只记一件事。接收人可以不填。
+私密家底账本：把物资、卡、钱、债、保险、钥匙、账号提示、文件位置记清楚。每一格只记一件事。接收人可以不填。
 
 三档：
 
@@ -114,9 +116,15 @@ Client-side vault passphrase is **not** sent to the server. Login password is on
 2. **记 + 手动分享** — 你自己生成密文链接。
 3. **记 + 指定人 + 约一个月未报到自动发** — 先武装密文包并报到；逾期则发出链接（有 SMTP 则发邮件，否则只记发送日志）。
 
-对方仍需你当面（或其它渠道）告知的口令。服务器没有明文，也没有银行接口。**不是遗嘱。**
+对方仍需你当面（或其它渠道）告知的口令。服务器没有明文，也没有银行接口。
 
-演示账号：`demo@household-ledger.local` / `DemoPass123!`
+### 演示
+
+登录：`demo@household-ledger.local` / `DemoPass123!`。
+
+保险柜**自动使用同一登录密码**，无需第二次输入。口令只留在浏览器，不会发到服务器。
+
+若本机曾用另一口令写过保险柜标记，点 **忘记保险柜口令 / 重置本机保险柜**。空演示账本可直接重置。
 
 ### 如何运行
 

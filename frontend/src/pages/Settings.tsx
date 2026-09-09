@@ -53,7 +53,6 @@ export function Settings() {
   return (
     <div>
       <h1>{t('settings')}</h1>
-      <p className="warn">{t('disclaimer')}</p>
       <form className="card form-grid" onSubmit={saveTier}>
         <h3>{lang === 'zh' ? '告知档位' : 'Sharing tier'}</h3>
         {(['RECORD_ONLY', 'MANUAL_SHARE', 'AUTO_SEND'] as SharingTier[]).map((value, i) => (
