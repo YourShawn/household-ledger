@@ -36,9 +36,9 @@ Recipients still need the unlock phrase you shared out of band. The API never se
 
 Sign in as `demo@household-ledger.local` / `DemoPass123!`.
 
-The client vault **auto-unlocks with the same login password** — no second passphrase prompt. The vault passphrase is never sent to the server. Login password is only for JWT.
+The client vault **auto-unlocks with the same login password** — no second passphrase prompt. The vault key never leaves the browser. Login password is only sent for JWT.
 
-If an older local canary was created with a different phrase, use **Forgot vault passphrase / reset local vault** (`忘记保险柜口令 / 重置本机保险柜`). That clears `hl.canary.${userId}` and `hl.vault` on this device, then re-unlocks with the login password. Ciphertext already stored on the server still needs the old phrase if any items were encrypted with it; empty demo ledgers are fine to reset.
+If an older local canary was created with a different phrase, login silently clears `hl.canary.${userId}` on this device and unlocks again with the login password. A session restore that no longer matches the canary just drops the stored vault phrase; sign in again to set the key. Ciphertext already stored on the server still needs the phrase it was encrypted with.
 
 ### Architecture
 
@@ -124,7 +124,7 @@ Client-side vault passphrase is **not** sent to the server. After login, the vau
 
 保险柜**自动使用同一登录密码**，无需第二次输入。口令只留在浏览器，不会发到服务器。
 
-若本机曾用另一口令写过保险柜标记，点 **忘记保险柜口令 / 重置本机保险柜**。空演示账本可直接重置。
+若本机曾用另一口令写过保险柜标记，登录时会静默清掉本机标记并用登录密码重新打开。会话恢复对不上时只丢掉记住的口令，重新登录即可。服务器上已有密文仍需当初加密时的口令。
 
 ### 如何运行
 

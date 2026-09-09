@@ -14,20 +14,6 @@ const dict = {
   email: { zh: '邮箱', en: 'Email' },
   password: { zh: '登录密码', en: 'Login password' },
   displayName: { zh: '称呼', en: 'Display name' },
-  vault: { zh: '保险柜口令', en: 'Vault passphrase' },
-  vaultHint: {
-    zh: '保险柜默认使用登录密码。口令只留在本机，不会发到服务器。',
-    en: 'The vault defaults to your login password. It never leaves this browser.',
-  },
-  vaultMismatch: {
-    zh: '本机保险柜口令与登录密码不一致。',
-    en: "This device's vault passphrase does not match the login password.",
-  },
-  vaultReset: { zh: '忘记保险柜口令 / 重置本机保险柜', en: 'Forgot vault passphrase / reset local vault' },
-  vaultResetWarn: {
-    zh: '重置只清除本机记住的解锁状态。若条目曾用旧口令加密，解密仍需旧口令；空演示账本可直接重置。',
-    en: 'Reset clears locally remembered unlock state only. Ciphertext on the server still needs the old phrase if items were encrypted with it — empty demo ledgers are fine.',
-  },
   unlock: { zh: '打开账本', en: 'Unlock' },
   lock: { zh: '合上', en: 'Lock' },
   logout: { zh: '退出', en: 'Sign out' },
