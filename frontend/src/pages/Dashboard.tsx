@@ -8,7 +8,7 @@ import { kindMeta, SAMPLE_ITEMS, type Dashboard } from '../types'
 
 export function Dashboard() {
   const { t, lang } = useI18n()
-  const { key, refresh } = useSession()
+  const { key, user, unlocking, ensureVaultKey, refresh } = useSession()
   const [data, setData] = useState<Dashboard | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
 
@@ -16,6 +16,11 @@ export function Dashboard() {
   useEffect(() => {
     void load()
   }, [])
+
+  useEffect(() => {
+    if (!user || key) return
+    void ensureVaultKey()
+  }, [user, key, ensureVaultKey])
 
   const due = data
     ? new Date(new Date(data.lastCheckInAt).getTime() + data.checkInIntervalDays * 86400000)
@@ -77,18 +82,24 @@ export function Dashboard() {
         <button
           className="btn ghost"
           type="button"
-          disabled={!key}
+          disabled={!key || unlocking}
+          title={!key ? (lang === 'zh' ? '正在准备加密…' : 'Preparing encryption…') : undefined}
           onClick={async () => {
-            if (!key) return
+            let vaultKey = key
+            if (!vaultKey) vaultKey = await ensureVaultKey()
+            if (!vaultKey) {
+              setMsg(lang === 'zh' ? '正在准备加密…' : 'Preparing encryption…')
+              return
+            }
             for (const sample of SAMPLE_ITEMS) {
-              const enc = await encryptJson(sample.payload, key)
+              const enc = await encryptJson(sample.payload, vaultKey)
               await api.createItem({ kind: sample.kind, ...enc })
             }
             await load()
             setMsg(lang === 'zh' ? '示例已加密写入' : 'Encrypted samples stored')
           }}
         >
-          {t('samples')}
+          {!key || unlocking ? (lang === 'zh' ? '正在准备加密…' : 'Preparing…') : t('samples')}
         </button>
       </div>
     </div>

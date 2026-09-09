@@ -58,33 +58,17 @@ export function resetLocalVaultStorage(
   stores.session.removeItem(VAULT_SESSION_KEY)
 }
 
-/** Login path: unlock with the login password. A stale local canary is reset silently. */
-export async function unlockWithLoginPassword(
-  password: string,
+/** Unlock with login password; on canary mismatch, silently reset local vault and retry once. */
+export async function unlockVaultOrResetOnMismatch(
+  passphrase: string,
   user: Pick<User, 'id' | 'cryptoSalt'>,
   stores: { local: KvStore; session: KvStore } = browserStores(),
 ): Promise<CryptoKey> {
   try {
-    return await unlockVault(password, user, stores)
+    return await unlockVault(passphrase, user, stores)
   } catch (err) {
     if (!(err instanceof VaultMismatchError)) throw err
     resetLocalVaultStorage(user.id, stores)
-    return unlockVault(password, user, stores)
-  }
-}
-
-/** Page restore: unlock from sessionStorage. Mismatch clears the stored phrase only. */
-export async function restoreVaultSession(
-  user: Pick<User, 'id' | 'cryptoSalt'>,
-  stores: { local: KvStore; session: KvStore } = browserStores(),
-): Promise<CryptoKey | null> {
-  const stored = stores.session.getItem(VAULT_SESSION_KEY)
-  if (!stored) return null
-  try {
-    return await unlockVault(stored, user, stores)
-  } catch (err) {
-    if (!(err instanceof VaultMismatchError)) throw err
-    stores.session.removeItem(VAULT_SESSION_KEY)
-    return null
+    return await unlockVault(passphrase, user, stores)
   }
 }

@@ -27,3 +27,4 @@ backend/data/
 .project
 .settings/
 .mvn/wrapper/maven-wrapper.jar
+docker-compose.override.yml
