@@ -1,0 +1,51 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-household_ledger}
+      MYSQL_USER: ${MYSQL_USER:-ledger}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-db}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-change-me-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-household_ledger}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ledger}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-change-me-db}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string-at-least-32-chars}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-12}
+      LEDGER_SEED: ${LEDGER_SEED:-true}
+      LEDGER_CORS_ORIGINS: ${LEDGER_CORS_ORIGINS:-http://localhost:8088,http://localhost:5173}
+      LEDGER_PUBLIC_BASE_URL: ${LEDGER_PUBLIC_BASE_URL:-http://localhost:8088}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-noreply@localhost}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8088}:80"
+
+volumes:
+  mysql_data:

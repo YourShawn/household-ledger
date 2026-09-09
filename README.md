@@ -1,2 +1,119 @@
-# household-ledger
-Private household inventory ledger with optional recipients and soft dead-man switch. Spring Boot + React + MySQL.
+# 物资家底账本 / Household Ledger
+
+Private household inventory with **optional** recipients and a soft missed-check-in send.  
+私密家底账本：接收人可选；可在约一个月未报到后把**密文包**发给指定人。
+
+**This is not a legal will, trust, or estate instrument. There is no bank API.**  
+**本软件不是遗嘱、信托或任何法律文件，也不连接银行。**
+
+MIT licensed. Server stores **ciphertext**. Encryption runs in the browser (AES-256-GCM, PBKDF2-SHA-256).
+
+---
+
+## English
+
+### What it is
+
+A private ledger for typed household facts. Each field has **one** meaning. Kinds:
+
+| Kind | Meaning | Fields (one semantic each) |
+| --- | --- | --- |
+| 物资 / Goods | Things you keep | name, location, quantity, notes |
+| 卡 / Card | Cards (hints only) | name, issuer, last-4 hint, expiry hint, where kept |
+| 钱 / Cash | Cash-like holdings | name, amount hint, currency, where kept |
+| 债 / Debt | Money owed | name, counterparty, amount hint, due hint |
+| 保险 / Insurance | Policies | name, provider, policy hint, contact |
+| 钥匙 / Key | Keys | name, what it opens, where kept |
+| 账号提示 / Account hint | Recovery hints — **not passwords** | name, service, username hint, recovery hint |
+| 文件位置 / File location | Where paper lives | name, description, where kept |
+
+Recipients are **optional**. Three tiers:
+
+1. **Record only (只记不发)** — encrypt in place; sharing APIs return 403.
+2. **Record + manual share (记+手动分享)** — you mint a ciphertext link.
+3. **Record + designated people + auto-send (记+指定人+逾期自动发)** — you name recipients, arm an encrypted bundle, and check in. After `check_in_interval_days` (default **30 ≈ one month**) without check-in, the server copies the bundle to a retrieve link and emails recipients if SMTP is configured; otherwise it **logs** the notice.
+
+Recipients still need the unlock phrase you shared out of band. The API never sees plaintext item fields.
+
+Seed user: `demo@household-ledger.local` / `DemoPass123!`
+
+### Architecture
+
+```
+frontend/          React 19 + Vite + TypeScript (responsive SPA)
+backend/
+  common/          errors, enums, security principal
+  auth/            register/login/JWT/check-in/settings
+  inventory/       items, recipients, shares, auto-send
+  app/             Spring Boot 3.5, Flyway, OpenAPI, scheduler
+```
+
+Layering is controller → service → repository. Primary keys and foreign keys are in Flyway (`docs/schema.md`).
+
+### Run locally (no Docker)
+
+Java 17+, Maven, Node 22+.
+
+```bash
+# API with local H2 (MySQL-mode) — good for development
+cd backend && mvn -pl app -am spring-boot:run -Dspring-boot.run.profiles=local
+
+# UI (proxies /api to :8080)
+cd frontend && npm install && npm run dev
+```
+
+Open http://localhost:5173 · OpenAPI http://localhost:8080/swagger-ui.html
+
+### Run with MySQL 8 (Docker Compose)
+
+```bash
+cp .env.example .env   # set JWT_SECRET and DB passwords
+docker compose up --build
+```
+
+App: http://localhost:8088 · API: http://localhost:8080
+
+### Tests
+
+```bash
+chmod +x scripts/smoke.sh && ./scripts/smoke.sh
+# or:
+cd backend && mvn test
+cd frontend && npm test
+```
+
+CI: `.github/workflows/ci.yml`.
+
+### Configuration
+
+See `.env.example`. Notable keys: `JWT_SECRET`, MySQL credentials, optional `MAIL_HOST` for real auto-send email.
+
+Client-side vault passphrase is **not** sent to the server. Login password is only for JWT.
+
+---
+
+## 中文
+
+### 这是什么
+
+给家庭用的私密家底账：每一格只记一件事。接收人可以不填。
+
+三档：
+
+1. **只记不发** — 只在浏览器加密后存到服务器。
+2. **记 + 手动分享** — 你自己生成密文链接。
+3. **记 + 指定人 + 约一个月未报到自动发** — 先武装密文包并报到；逾期则发出链接（有 SMTP 则发邮件，否则只记发送日志）。
+
+对方仍需你当面（或其它渠道）告知的口令。服务器没有明文，也没有银行接口。**不是遗嘱。**
+
+演示账号：`demo@household-ledger.local` / `DemoPass123!`
+
+### 如何运行
+
+开发可用 H2（`local` profile）+ Vite；生产用 Docker Compose 启动 MySQL 8 + 后端 + 前端。架构、表结构、OpenAPI 见 `backend/`、`docs/schema.md`、`docs/openapi.yaml`。
+
+---
+
+## License
+
+[MIT](LICENSE)

@@ -1,0 +1,29 @@
+# Build
+**/target/
+**/dist/
+**/.idea/
+**/*.iml
+.vscode/
+*.log
+.DS_Store
+
+# Node
+frontend/node_modules/
+frontend/.vite/
+
+# Env / secrets
+.env
+.env.local
+*.pem
+
+# Local H2 data
+backend/app/data/
+backend/data/
+*.mv.db
+*.trace.db
+
+# OS / tooling
+.classpath
+.project
+.settings/
+.mvn/wrapper/maven-wrapper.jar
