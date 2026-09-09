@@ -5,7 +5,7 @@ import { Unlock } from './Unlock'
 
 export function Shell() {
   const { t, toggle, lang } = useI18n()
-  const { user, key, logout } = useSession()
+  const { user, key, logout, unlocking } = useSession()
   const navigate = useNavigate()
 
   return (
@@ -55,7 +55,7 @@ export function Shell() {
         <NavLink to="/app/recipients">{t('recipients')}</NavLink>
         <NavLink to="/app/settings">{t('settings')}</NavLink>
       </nav>
-      {user && !key ? <Unlock /> : null}
+      {user && !key && !unlocking ? <Unlock /> : null}
     </div>
   )
 }

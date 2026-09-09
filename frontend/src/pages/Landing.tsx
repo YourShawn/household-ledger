@@ -13,10 +13,10 @@ export function Landing() {
       </div>
       <section className="hero">
         <div>
-          <div className="seal">家底</div>
+          <div className="seal">财</div>
           <h1>{t('appName')}</h1>
           <p className="lede">{t('tagline')}</p>
-          <p className="warn">{t('disclaimer')}</p>
+          <p className="muted">{t('capability')}</p>
           <div className="actions">
             <Link className="btn" to="/register">
               {t('register')}

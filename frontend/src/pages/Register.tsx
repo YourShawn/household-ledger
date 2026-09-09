@@ -32,7 +32,7 @@ export function Register() {
     <div className="auth-page">
       <form className="card auth-card" onSubmit={onSubmit}>
         <h1>{t('register')}</h1>
-        <p className="warn">{t('disclaimer')}</p>
+        <p className="muted">{t('capability')}</p>
         <label>
           {t('displayName')}
           <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />

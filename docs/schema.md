@@ -1,8 +1,6 @@
 # Database schema
 
-物资家底账本 stores **ciphertext** for private inventory. The server can filter by `kind` and run check-in / auto-send, but it cannot read field values.
-
-This is **not** a legal will. There is **no** bank API.
+物资家底账本 stores **ciphertext** for a private wealth inventory. The server can filter by `kind` and run check-in / auto-send, but it cannot read field values. There is **no** bank API.
 
 ## Entity-relationship
 

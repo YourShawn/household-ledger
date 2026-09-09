@@ -4,10 +4,10 @@ export type Lang = 'zh' | 'en'
 
 const dict = {
   appName: { zh: '物资家底账本', en: 'Household Ledger' },
-  tagline: { zh: '只记家底，可选告知。不是遗嘱。', en: 'Private inventory. Recipients optional. Not a will.' },
-  disclaimer: {
-    zh: '本应用不是法律意义上的遗嘱、信托或遗产安排，也不连接任何银行。服务器只保存密文。',
-    en: 'This is not a legal will, trust, or estate plan, and it has no bank API. The server stores ciphertext only.',
+  tagline: { zh: '记清家底。加密账本，分享随你。', en: 'Private wealth inventory. Encrypted ledger. Share on your terms.' },
+  capability: {
+    zh: '浏览器内加密，服务器只存密文。不连接银行。',
+    en: 'Encrypted in the browser. Ciphertext on the server. No bank API.',
   },
   login: { zh: '登录', en: 'Sign in' },
   register: { zh: '开账', en: 'Create ledger' },
@@ -15,6 +15,19 @@ const dict = {
   password: { zh: '登录密码', en: 'Login password' },
   displayName: { zh: '称呼', en: 'Display name' },
   vault: { zh: '保险柜口令', en: 'Vault passphrase' },
+  vaultHint: {
+    zh: '保险柜默认使用登录密码。口令只留在本机，不会发到服务器。',
+    en: 'The vault defaults to your login password. It never leaves this browser.',
+  },
+  vaultMismatch: {
+    zh: '本机保险柜口令与登录密码不一致。',
+    en: "This device's vault passphrase does not match the login password.",
+  },
+  vaultReset: { zh: '忘记保险柜口令 / 重置本机保险柜', en: 'Forgot vault passphrase / reset local vault' },
+  vaultResetWarn: {
+    zh: '重置只清除本机记住的解锁状态。若条目曾用旧口令加密，解密仍需旧口令；空演示账本可直接重置。',
+    en: 'Reset clears locally remembered unlock state only. Ciphertext on the server still needs the old phrase if items were encrypted with it — empty demo ledgers are fine.',
+  },
   unlock: { zh: '打开账本', en: 'Unlock' },
   lock: { zh: '合上', en: 'Lock' },
   logout: { zh: '退出', en: 'Sign out' },
@@ -32,7 +45,10 @@ const dict = {
   tier2: { zh: '记 + 手动分享', en: 'Record + manual share' },
   tier3: { zh: '记 + 指定人 + 逾期自动发', en: 'Record + designated + auto-send' },
   samples: { zh: '写入示例（本地加密）', en: 'Add encrypted samples' },
-  demoHint: { zh: '演示账号 demo@household-ledger.local / DemoPass123!', en: 'Demo: demo@household-ledger.local / DemoPass123!' },
+  demoHint: {
+    zh: '演示账号 demo@household-ledger.local / DemoPass123!（保险柜自动用登录密码）',
+    en: 'Demo: demo@household-ledger.local / DemoPass123! — vault auto-uses the login password',
+  },
 } as const
 
 type Key = keyof typeof dict

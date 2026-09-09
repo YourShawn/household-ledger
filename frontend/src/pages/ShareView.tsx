@@ -38,7 +38,6 @@ export function ShareView() {
   return (
     <div className="landing">
       <h1>{lang === 'zh' ? '密文包' : 'Encrypted bundle'}</h1>
-      <p className="warn">{t('disclaimer')}</p>
       {!bundle ? (
         <form className="card form-grid" onSubmit={onSubmit}>
           <p className="muted">
