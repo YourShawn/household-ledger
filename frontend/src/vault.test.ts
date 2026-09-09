@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { randomSalt } from './crypto'
 import {
   resetLocalVaultStorage,
+  restoreVaultSession,
   unlockVault,
+  unlockWithLoginPassword,
   VAULT_CANARY,
   VAULT_SESSION_KEY,
   VaultMismatchError,
@@ -56,5 +58,34 @@ describe('client vault canary', () => {
     expect(stores.session.getItem(VAULT_SESSION_KEY)).toBeNull()
     await unlockVault('DemoPass123!', user, stores)
     expect(stores.session.getItem(VAULT_SESSION_KEY)).toBe('DemoPass123!')
+  })
+
+  it('login unlock silently resets a mismatched canary and sets the key', async () => {
+    const stores = { local: memoryStore(), session: memoryStore() }
+    await unlockVault('old-vault-phrase', user, stores)
+    const key = await unlockWithLoginPassword('DemoPass123!', user, stores)
+    expect(key).toBeTruthy()
+    expect(stores.session.getItem(VAULT_SESSION_KEY)).toBe('DemoPass123!')
+    await expect(unlockVault('DemoPass123!', user, stores)).resolves.toBeTruthy()
+    await expect(unlockVault('old-vault-phrase', user, stores)).rejects.toBeInstanceOf(VaultMismatchError)
+  })
+
+  it('session restore unlocks when the stored passphrase matches', async () => {
+    const stores = { local: memoryStore(), session: memoryStore() }
+    await unlockVault('DemoPass123!', user, stores)
+    const key = await restoreVaultSession(user, stores)
+    expect(key).toBeTruthy()
+    expect(stores.session.getItem(VAULT_SESSION_KEY)).toBe('DemoPass123!')
+  })
+
+  it('session restore clears a mismatched stored passphrase and leaves the canary', async () => {
+    const stores = { local: memoryStore(), session: memoryStore() }
+    await unlockVault('old-vault-phrase', user, stores)
+    stores.session.setItem(VAULT_SESSION_KEY, 'DemoPass123!')
+    const canaryBefore = stores.local.getItem(vaultCanaryKey(user.id))
+    const key = await restoreVaultSession(user, stores)
+    expect(key).toBeNull()
+    expect(stores.session.getItem(VAULT_SESSION_KEY)).toBeNull()
+    expect(stores.local.getItem(vaultCanaryKey(user.id))).toBe(canaryBefore)
   })
 })
