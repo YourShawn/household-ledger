@@ -11,12 +11,25 @@ export function ItemEditor() {
   const isNew = !id || id === 'new'
   const navigate = useNavigate()
   const { lang, t } = useI18n()
-  const { key } = useSession()
+  const { key, user, unlocking, ensureVaultKey, error: sessionError } = useSession()
   const [kind, setKind] = useState<ItemKind>('ASSET')
   const [values, setValues] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [retrying, setRetrying] = useState(false)
   const meta = kindMeta(kind)
+
+  useEffect(() => {
+    if (!user || key) return
+    let cancelled = false
+    setRetrying(true)
+    void ensureVaultKey().finally(() => {
+      if (!cancelled) setRetrying(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [user, key, ensureVaultKey])
 
   useEffect(() => {
     if (isNew || !key || !id) return
@@ -33,13 +46,20 @@ export function ItemEditor() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!key) return
+    let vaultKey = key
+    if (!vaultKey) {
+      vaultKey = await ensureVaultKey()
+    }
+    if (!vaultKey) {
+      setError(lang === 'zh' ? '正在准备加密…请稍后再试' : 'Preparing encryption… try again in a moment')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
       const payload: Record<string, string> = {}
       for (const field of meta.fields) payload[field.key] = values[field.key] ?? ''
-      const enc = await encryptJson(payload, key)
+      const enc = await encryptJson(payload, vaultKey)
       if (isNew) await api.createItem({ kind, ...enc })
       else await api.updateItem(id!, { kind, ...enc })
       navigate('/app/items')
@@ -49,6 +69,9 @@ export function ItemEditor() {
       setBusy(false)
     }
   }
+
+  const preparing = Boolean(user) && !key
+  const saveDisabled = busy || preparing || unlocking || retrying
 
   return (
     <form className="form-grid" onSubmit={onSubmit}>
@@ -86,10 +109,32 @@ export function ItemEditor() {
           )}
         </label>
       ))}
+      {preparing ? (
+        <p className="muted">
+          {lang === 'zh' ? '正在准备加密…' : 'Preparing encryption…'}
+          {sessionError ? ` (${sessionError})` : ''}
+          {' '}
+          <button
+            className="linkish"
+            type="button"
+            style={{ background: 'transparent', border: 0, color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
+            onClick={() => {
+              setRetrying(true)
+              void ensureVaultKey().finally(() => setRetrying(false))
+            }}
+          >
+            {lang === 'zh' ? '重试' : 'Retry'}
+          </button>
+        </p>
+      ) : null}
       {error ? <p className="error">{error}</p> : null}
       <div className="row-actions">
-        <button className="btn" disabled={busy || !key} type="submit">
-          {t('save')}
+        <button className="btn" disabled={saveDisabled} type="submit">
+          {preparing || unlocking || retrying
+            ? lang === 'zh'
+              ? '正在准备加密…'
+              : 'Preparing…'
+            : t('save')}
         </button>
         {!isNew ? (
           <button

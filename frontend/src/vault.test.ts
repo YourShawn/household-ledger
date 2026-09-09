@@ -3,6 +3,7 @@ import { randomSalt } from './crypto'
 import {
   resetLocalVaultStorage,
   unlockVault,
+  unlockVaultOrResetOnMismatch,
   VAULT_CANARY,
   VAULT_SESSION_KEY,
   VaultMismatchError,
@@ -56,5 +57,15 @@ describe('client vault canary', () => {
     expect(stores.session.getItem(VAULT_SESSION_KEY)).toBeNull()
     await unlockVault('DemoPass123!', user, stores)
     expect(stores.session.getItem(VAULT_SESSION_KEY)).toBe('DemoPass123!')
+  })
+
+  it('silently resets on mismatch then unlocks with the login password', async () => {
+    const stores = { local: memoryStore(), session: memoryStore() }
+    await unlockVault('old-vault-phrase', user, stores)
+    const key = await unlockVaultOrResetOnMismatch('DemoPass123!', user, stores)
+    expect(key).toBeTruthy()
+    expect(stores.session.getItem(VAULT_SESSION_KEY)).toBe('DemoPass123!')
+    // canary rewritten for the new passphrase
+    await expect(unlockVault('DemoPass123!', user, stores)).resolves.toBeTruthy()
   })
 })
