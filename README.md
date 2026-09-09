@@ -64,14 +64,24 @@ cd frontend && npm install && npm run dev
 
 Open http://localhost:5173 · OpenAPI http://localhost:8080/swagger-ui.html
 
-### Run with MySQL 8 (Docker Compose)
+### Run with Docker Compose (external MySQL)
+
+Compose does **not** start MySQL by default. Point the app at MySQL on **localhost / private** (`MYSQL_HOST=127.0.0.1`) — never a public server IP.
 
 ```bash
-cp .env.example .env   # set JWT_SECRET and DB passwords
+cp .env.example .env   # MYSQL_HOST=127.0.0.1; set JWT_SECRET and DB passwords
 docker compose up --build
 ```
 
+If the API runs **inside Compose** and MySQL is on the same machine, set `MYSQL_HOST=host.docker.internal` (Compose maps this to the host gateway). Do not use a public IP.
+
 App: http://localhost:8088 · API: http://localhost:8080
+
+Optional local solo demo (starts MySQL on the private Compose network; published only on `127.0.0.1:3306`):
+
+```bash
+MYSQL_HOST=mysql docker compose --profile bundled-mysql up --build
+```
 
 ### Tests
 
@@ -86,7 +96,7 @@ CI: `.github/workflows/ci.yml`.
 
 ### Configuration
 
-See `.env.example`. Notable keys: `JWT_SECRET`, MySQL credentials, optional `MAIL_HOST` for real auto-send email.
+See `.env.example`. Notable keys: `JWT_SECRET`, `MYSQL_HOST` (`127.0.0.1` / private only), MySQL credentials, optional `MAIL_HOST` for real auto-send email.
 
 Client-side vault passphrase is **not** sent to the server. Login password is only for JWT.
 
@@ -110,7 +120,7 @@ Client-side vault passphrase is **not** sent to the server. Login password is on
 
 ### 如何运行
 
-开发可用 H2（`local` profile）+ Vite；生产用 Docker Compose 启动 MySQL 8 + 后端 + 前端。架构、表结构、OpenAPI 见 `backend/`、`docs/schema.md`、`docs/openapi.yaml`。
+开发可用 H2（`local` profile）+ Vite。Docker Compose 默认只启动后端 + 前端，MySQL 需本机/私网（`127.0.0.1`，不要用公网 IP）。本地单机演示可用 `docker compose --profile bundled-mysql`（并设 `MYSQL_HOST=mysql`）。架构、表结构、OpenAPI 见 `backend/`、`docs/schema.md`、`docs/openapi.yaml`。
 
 ---
 
